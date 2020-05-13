@@ -35,11 +35,10 @@ def process(udp_clients):
     client_ring = ConsistentHashRing(udp_clients, 3)#For Part2 ONLY
     client_ring.setKeys()#For Part2 ONLY
     hash_codes = set()
-    BF = bloomfilter.BloomFilter(20,0.05)
-    put(client_ring, hash_codes, BF)
+    put(client_ring, hash_codes)
     hash_codes_tup = tuple(hash_codes)
-    get(client_ring, hash_codes_tup, BF)
-    delete(client_ring, hash_codes, BF)
+    get(client_ring, hash_codes_tup)
+    delete(client_ring, hash_codes)
 '''
     # PUT all users.
     for u in USERS:
@@ -65,30 +64,29 @@ def process(udp_clients):
         response = client_ring.get_node(key).send(data_bytes)
         print(response)
 '''
-def put (client_ring, hash_codes, BF):
+def put (client_ring, hash_codes):
     for u in USERS:
         data_bytes, key = serialize_PUT(u)
-        BF.add(key)
+        
         response = client_ring.get_node(key).send(data_bytes)
         print(response)
         hash_codes.add(str(response.decode()))
-        
-@LRUCache(5)
-def get(client_ring, hash_codes, BF):
+
+def get(client_ring, hash_codes):
     for hc in hash_codes:
         print(hc)
         data_bytes, key = serialize_GET(hc)
-        if BF.is_member(key):
-            response = client_ring.get_node(key).send(data_bytes)
-            print(response)
+        
+        response = client_ring.get_node(key).send(data_bytes)
+        print(response)
 
-def delete(client_ring, hash_codes, BF):
+def delete(client_ring, hash_codes):
     for hc in hash_codes:
         print(hc)
         data_bytes, key = serialize_DEL(hc)
-        if BF.is_member(key):
-            response = client_ring.get_node(key).send(data_bytes)
-            print(response)
+        
+        response = client_ring.get_node(key).send(data_bytes)
+        print(response)
 
 def replic_nodes(NODES, replicas):
     for i in range(len(NODES)):
